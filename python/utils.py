@@ -4,13 +4,16 @@ from numpy.fft import fft, fftshift, fftfreq, ifft
 
 import scipy
 
-# convert index between 0 and 2049 to 0 and 34
+FREQ_BINS = 34
+N_SPEC = 2049
+
+# convert index between 0 and N_SPEC to 0 and FREQ_BINS
 def k_to_b(k):
-    return np.round(33 * k / 2048).astype(int)
+    return np.round((FREQ_BINS-1) * k / (N_SPEC-1)).astype(int)
 
 def b_matrix():
-    B = np.zeros((34, 2049), dtype=int)
-    for k in range(2049):
+    B = np.zeros((FREQ_BINS, N_SPEC), dtype=int)
+    for k in range(N_SPEC):
         B[k_to_b(k), k] = 1
     return B
 
@@ -68,22 +71,21 @@ def decode(stft, s, P_IID, P_IC):
     c = 10**(P_IID/20) # TODO: the paper says /20, but I think it might be /10
     N1 = len(c[0])
 
-    n_spec = 2049
 
-    Y_mixed = np.zeros((2, n_spec, N1), dtype=complex)
+    Y_mixed = np.zeros((2, N_SPEC, N1), dtype=complex)
 
     c_1 = np.sqrt(2*c**2 / (1 + c**2))
     c_2 = np.sqrt(2 / (1 + c**2))
     mu = 0.5*np.arccos(P_IC)
     nu = mu*(c_2 - c_1) / np.sqrt(2)
 
-    R_A = np.zeros((34, 2, 2, N1), dtype=complex)
+    R_A = np.zeros((FREQ_BINS, 2, 2, N1), dtype=complex)
     R_A[:, 0, 0] = c_1*np.cos(nu + mu)
     R_A[:, 0, 1] = c_1*np.sin(nu + mu)
     R_A[:, 1, 0] = c_2*np.cos(nu - mu)
     R_A[:, 1, 1] = c_2*np.sin(nu - mu)
 
-    for k in np.arange(0, n_spec):
+    for k in np.arange(0, N_SPEC):
         b = k_to_b(k)
         
         Y_mixed[0][k] = R_A[b][0][0]*S[k] + R_A[b][0][1]*S_d[k]
