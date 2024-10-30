@@ -3,9 +3,21 @@ from numpy import pi, exp, log10
 from numpy.fft import fft, fftshift, fftfreq, ifft
 
 import scipy
+from scipy.signal import ShortTimeFFT
+from scipy.signal.windows import hann
 
 FREQ_BINS = 34
 N_SPEC = 2049
+
+def get_stft(fs):
+    M = 4096 # frame size
+    overlap = 0.75 # hann window overlap (used to calculate hop size)
+    hop = int(M*(1-overlap)) # hop size
+
+    window = hann(M)
+
+    stft = ShortTimeFFT(win=window, hop=hop, fs=fs)
+    return stft
 
 # convert index between 0 and N_SPEC to 0 and FREQ_BINS
 def k_to_b(k):
