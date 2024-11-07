@@ -29,6 +29,21 @@ def b_matrix():
         B[k_to_b(k), k] = 1
     return B
 
+def parameters_concat(P_IID, P_IC):
+    return np.concatenate((P_IID, P_IC), axis=0)
+
+def parameters_split(P):
+    P_IID = P[0:FREQ_BINS]
+    P_IC = P[FREQ_BINS:]
+    return P_IID, P_IC
+
+def complex_to_real(x):
+    return np.concatenate((x.real, x.imag), axis=0)
+
+def real_to_complex(x):
+    N = len(x) // 2
+    return x[0:N] + 1j*x[N:]
+
 # of 1s in each row of B
 def b_matrix_counts():
     return np.sum(b_matrix(), axis=1)
