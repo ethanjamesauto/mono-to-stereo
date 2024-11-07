@@ -71,6 +71,11 @@ def encode(stft, l, r):
     p_RR = cross_spectrogram(R, R)
     p_LR = cross_spectrogram(L, R)
 
+    # avoid division by zero
+    e = 1e-10
+    p_RR[p_RR == 0.] = e
+    p_LL[p_LL == 0.] = e
+
     P_IID = 10*np.log10(p_LL / p_RR)
     P_IC = p_LR.real / np.sqrt(p_LL * p_RR)
     return P_IID, P_IC
