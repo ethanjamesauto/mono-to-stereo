@@ -8,6 +8,18 @@ from scipy.signal.windows import hann
 
 FREQ_BINS = 34
 N_SPEC = 2049
+FS = 44100
+
+def load_wav(fn):
+    fs, x = scipy.io.wavfile.read(fn)
+    x = np.array(x, dtype=np.float32)
+    if x.ndim != 2:
+        raise ValueError('Input wav file must be stereo')
+    if fs != FS:
+        raise ValueError('Input wav file must have sample rate of 44100')
+    l = x[:, 0]
+    r = x[:, 1]
+    return fs, l, r
 
 def get_stft(fs):
     M = 4096 # frame size
