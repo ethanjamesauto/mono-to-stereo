@@ -21,6 +21,34 @@ def load_wav(fn):
     r = x[:, 1]
     return fs, l, r
 
+def normalize_audio(l, r):
+    m = max(np.mean(l**2), np.mean(r**2))**0.5
+    l = l / m
+    r = r / m
+    return l, r, m
+
+def file_to_feature_label(f, stft):
+    fs, l, r = load_wav(f)
+
+    # normalize audio
+    l, r, m = normalize_audio(l, r)
+
+    # create mono track
+    s = (l + r) / 2
+    BS = b_matrix() @ spectrogram(stft, s)
+
+    ps = np.load(f + '_ps.npz')
+    P_IID, P_IC = ps['P_IID'], ps['P_IC']
+    P = parameters_concat(P_IID, P_IC)
+    
+    # s - the mono track
+    # BS - the binned spectrogram of the mono track (feature)
+    # P_IID - the IID parameters
+    # P_IC - the IC parameters
+    # P - the parameters concatenated
+    # m - the normalization factor (needed for decoding)
+    return s, BS, P_IID, P_IC, P, m
+
 def get_stft(fs):
     M = 4096 # frame size
     overlap = 0.75 # hann window overlap (used to calculate hop size)
