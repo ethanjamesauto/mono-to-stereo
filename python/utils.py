@@ -6,9 +6,11 @@ import scipy
 from scipy.signal import ShortTimeFFT
 from scipy.signal.windows import hann
 
+SPEC_M = 4096;
 FREQ_BINS = 34
 N_SPEC = 2049
 FS = 44100
+N_SAMPLES = 1321967
 
 def load_wav(fn):
     fs, x = scipy.io.wavfile.read(fn)
@@ -17,12 +19,14 @@ def load_wav(fn):
         raise ValueError('Input wav file must be stereo')
     if fs != FS:
         raise ValueError('Input wav file must have sample rate of 44100')
+    if (x.shape[0] != N_SAMPLES) or (x.shape[1] != 2):
+        raise ValueError('Input wav file must have 1321967 samples')
     l = x[:, 0]
     r = x[:, 1]
     return fs, l, r
 
 def normalize_audio(l, r):
-    m = max(np.mean(l**2), np.mean(r**2))**0.5
+    m = max(np.linalg.norm(l), np.linalg.norm(r))
     l = l / m
     r = r / m
     return l, r, m
@@ -50,7 +54,7 @@ def file_to_feature_label(f, stft):
     return s, BS, P_IID, P_IC, P, m
 
 def get_stft(fs):
-    M = 4096 # frame size
+    M = SPEC_M # frame size
     overlap = 0.75 # hann window overlap (used to calculate hop size)
     hop = int(M*(1-overlap)) # hop size
 
